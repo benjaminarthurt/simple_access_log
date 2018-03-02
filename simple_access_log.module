@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * @file
+ * Contains simple_access_log.module.
+ */
+
+function simple_access_log__log_request(){
+  //do nothing!
+  $message = 'simple access log request';
+  //request Time
+  $request_time = \Drupal::time()->getRequestTime();
+
+  //User or Anon
+  $uid = \Drupal::currentUser()->id();
+
+  //Hostname (can we help with the whole forwarded from thing?
+
+
+  //Page Title
+  $request = \Drupal::request();
+  $title = '';
+  if ($route = $request->attributes->get(\Symfony\Cmf\Component\Routing\RouteObjectInterface::ROUTE_OBJECT)) {
+    $title .= \Drupal::service('title_resolver')->getTitle($request, $route);
+  }
+
+
+  //Path
+
+
+  //Referrer
+
+
+
+
+  dpm($_SERVER);
+  dpm($_REQUEST);
+  dpm($request);
+  \Drupal::logger('my_module')->notice($message);
+}
