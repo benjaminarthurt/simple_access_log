@@ -5,8 +5,13 @@
  * Contains simple_access_log.module.
  */
 
-use Drupal\Core\Database\Connection;
 
+/**
+ *
+ * Handles the logging functions.
+ * Writes to Database table simple_access_log
+ *
+*/
 function simple_access_log__log_request(){
   //Settings
     $not_user_1 = false;
@@ -117,7 +122,22 @@ function simple_access_log_views_data()
             'id' => 'date',
         ),
     ];
-
+    $data['simple_access_log']['lid'] = array(
+        'title' => t('Log ID'),
+        'help' => t('The Unique Log ID'),
+        'field' => [
+            'id' => 'standard',
+        ],
+        'argument' => [
+            'id' => 'standard',
+        ],
+        'filter' => [
+            'id' => 'numeric',
+        ],
+        'sort' => [
+            'id' => 'standard',
+        ],
+    );
     $data['simple_access_log']['uid'] = array(
         'title' => t('Uid'),
         'help' => t('The user ID'),
@@ -248,4 +268,18 @@ function simple_access_log_views_data()
     );
 
     return $data;
+}
+
+/**
+ * Implements hook_cron().
+ */
+function simple_access_log_cron()
+{
+    //Clean up older access log entries
+    //@todo settings...
+    $oldest = strtotime('-1 hour');
+    $db = \Drupal::database();
+    $num_deleted = $db->delete('simple_access_log')
+        ->condition('timestamp', $oldest, '<')
+        ->execute();
 }
