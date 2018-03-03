@@ -7,91 +7,13 @@
 
 
 /**
- *
- * Handles the logging functions.
- * Writes to Database table simple_access_log
- *
-*/
-function simple_access_log__log_request(){
-  //Settings
-  //@todo load these settings... not just defaults
-  $do_not_log_0 = 0;
-  $do_not_log_1 = 0;
-  $do_not_log_admin = 0;
-  $not_admin_paths = 1;
-
-  $access_log = [];
-  //request Time
-  $access_log['timestamp'] = \Drupal::time()->getRequestTime();
-
-  //User or Anon
-  $access_log['uid'] = \Drupal::currentUser()->id();
-
-  // skip logging user 0 if enabled
-  if($do_not_log_0 && $access_log['uid'] == 0 ){
-    return;
-  }
-
-  // skip logging user 1 if enabled
-  if($do_not_log_1 && $access_log['uid'] == 1 ){
-      return;
-  }
-
-  //Skip logging all users with administrator role if enabled.
-  if($do_not_log_admin){
-      $roles = \Drupal::currentUser()->getRoles();
-      foreach($roles as $rid => $role){
-          if($role == 'administrator'){
-              return;
-          }
-      }
-  }
-
-    //Path
-    $access_log['path'] = $current_path = \Drupal::service('path.current')->getPath();
-
-    //Exclude Admin Paths
-    if($not_admin_paths && substr($access_log['path'],0,7)=='/admin/'){
-        return;
-    }
-
-    //Client IP
-  //@todo There may be a better to get this that takes into account load balancers etc that may be in-front of a host.
-  $access_log['remote_host'] = $_SERVER['REMOTE_ADDR'];
-
-  //Get hostname or host IP
-  $access_log['host'] = (strlen($_SERVER['SERVER_NAME'])>1?$_SERVER['SERVER_NAME']:$_SERVER['SERVER_ADDR']);
-
-  //Page Title
-  $request = \Drupal::request();
-  $access_log['title'] = '';
-  if ($route = $request->attributes->get(\Symfony\Cmf\Component\Routing\RouteObjectInterface::ROUTE_OBJECT)) {
-    $access_log['title'] .= \Drupal::service('title_resolver')->getTitle($request, $route);
-  }
-
-  //URI
-  $access_log['uri'] = \Drupal::request()->getRequestUri();
-
-
-  //Referer
-  $access_log['referer'] = $_SERVER['HTTP_REFERER'];
-
-  //User Agent
-  $access_log['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
-
-  // Log to watch dog so we know that this module is being called. Dev testing only.
-  $debug = false;
-  if($debug){
-      dpm($access_log);
-  }
-  $db = \Drupal::database();
-  if($db){
-      $db->insert('simple_access_log')->fields($access_log)->execute();
-  } else {
-      \Drupal::logger('simple_access_log')->error('Could not write to database.');
-  }
+ * Implements hook_cron().
+ */
+function simple_access_log_cron()
+{
+    $cleanup = New Drupal\simple_access_log\Controller\SimpleAccessLog();
+    $cleanup->cleanup();
 }
-
 
 /**
  * Implements hook_views_data().
@@ -275,18 +197,4 @@ function simple_access_log_views_data()
     );
 
     return $data;
-}
-
-/**
- * Implements hook_cron().
- */
-function simple_access_log_cron()
-{
-    //Clean up older access log entries
-    //@todo settings...
-    $oldest = strtotime('-1 hour');
-    $db = \Drupal::database();
-    $num_deleted = $db->delete('simple_access_log')
-        ->condition('timestamp', $oldest, '<')
-        ->execute();
 }

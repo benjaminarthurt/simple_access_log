@@ -55,7 +55,7 @@ class SimpleAccessLogSettingsForm extends ConfigFormBase {
      * {@inheritdoc}
      */
     protected function getEditableConfigNames() {
-        return ['statistics.settings'];
+        return ['simple_access_log.settings'];
     }
 
     /**
@@ -94,8 +94,17 @@ class SimpleAccessLogSettingsForm extends ConfigFormBase {
             '#description' => t('Skip logging for any admin paths. i.e. those paths that start with "/admin/*".'),
         ];
         $options = [
-            '2419200'=>'4 Weeks',
+            '9676800'=> '4 Months (16 Weeks)',
+            '2419200'=> '4 Weeks',
+            '1209600'=> '2 Weeks',
+            '604800' => '1 Week',
+            '259200' => '3 Days',
+            '86400' => '1 Day',
         ];
+        //What if someone manually overrides the value?
+        if(!in_array($config->get('delete_log_after'),array_keys($options))){
+            $options[$config->get('delete_log_after')] = $config->get('delete_log_after').' seconds';
+        }
         $form['content']['simple_access_log_delete_log_after'] = [
             '#type' => 'select',
             '#title' => t('Log retention period'),
@@ -116,6 +125,7 @@ class SimpleAccessLogSettingsForm extends ConfigFormBase {
             ->set('do_not_log_1', $form_state->getValue('simple_access_log_do_not_log_1'))
             ->set('do_not_log_admin', $form_state->getValue('simple_access_log_do_not_log_admin'))
             ->set('not_admin_paths', $form_state->getValue('simple_access_log_not_admin_paths'))
+            ->set('delete_log_after', $form_state->getValue('simple_access_log_delete_log_after'))
             ->save();
 
         parent::submitForm($form, $form_state);
