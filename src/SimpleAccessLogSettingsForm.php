@@ -101,7 +101,7 @@ class SimpleAccessLogSettingsForm extends ConfigFormBase {
       '259200' => '3 Days',
       '86400' => '1 Day',
     ];
-    //What if someone manually overrides the value?
+    // What if someone manually overrides the value?
     if (!in_array($config->get('delete_log_after'), array_keys($options))) {
       $options[$config->get('delete_log_after')] = $config->get('delete_log_after') . ' seconds';
     }
