@@ -26,6 +26,10 @@ class SimpleAccessLog extends ControllerBase implements ContainerInjectionInterf
   public function logValues() {
     // Load module settings.
     $settings = \Drupal::config('simple_access_log.settings');
+
+    // Get the request itself, this should supply most of the needed values.
+    $request = \Drupal::request();
+
     $access_log = [];
     //request Time
     $access_log['timestamp'] = \Drupal::time()->getRequestTime();
@@ -61,16 +65,11 @@ class SimpleAccessLog extends ControllerBase implements ContainerInjectionInterf
       return false;
     }
 
-    // Get the request itself, this should supply most of the rest of the needed values.
-    $request = \Drupal::request();
-
-
     // Get the Client IP.
     $access_log['remote_host'] = $request->getClientIp();
 
     // Get hostname or host IP.
-    // @todo see if these values can be pulled from the request variable?
-    $access_log['host'] = (strlen($_SERVER['SERVER_NAME']) > 1 ? $_SERVER['SERVER_NAME'] : $_SERVER['SERVER_ADDR']);
+    $access_log['host'] = (strlen($request->server->get('SERVER_NAME')) > 1 ? $request->server->get('SERVER_NAME') : $request->server->get('SERVER_ADDR'));
 
     // Get Page Title from the current route.
     $access_log['title'] = '';
@@ -83,12 +82,10 @@ class SimpleAccessLog extends ControllerBase implements ContainerInjectionInterf
 
 
     // Get the Referer variable.
-    // @todo see if these values can be pulled from the request variable?
-    $access_log['referer'] = $_SERVER['HTTP_REFERER'];
+    $access_log['referer'] = $request->server->get('HTTP_REFERER');
 
     // Get the clietn's User Agent.
-    // @todo see if these values can be pulled from the request variable?
-    $access_log['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
+    $access_log['user_agent'] = $request->server->get('HTTP_USER_AGENT');
 
     // Return our loaded access log array.
     return $access_log;
