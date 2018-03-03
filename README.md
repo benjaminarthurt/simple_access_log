@@ -1,7 +1,7 @@
 # Simple Access Log
 Drupal 8 Simple Access Log replicates the basic features/functions of the Core Access Log functions that were included as part of the statisitics module, that were not ported to Drupal 8.
 
-Read more about the features and use of Simple Access Log at its Drupal.org project page at ...?
+Read more about the features and use of Simple Access Log at its Drupal.org project page at [https://www.drupal.org/project/simple_access_log](https://www.drupal.org/project/simple_access_log)
 
 ## Installation and use
 
