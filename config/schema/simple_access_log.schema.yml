@@ -19,3 +19,6 @@ simple_access_log.settings:
     delete_log_after:
       type: integer
       label: 'Length of time to keep access logs.'
+    respect_dnt:
+      type: integer
+      label: 'Prevent this module from tracking access by clients sending the Do Not Track header.'

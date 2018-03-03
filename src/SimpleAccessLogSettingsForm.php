@@ -93,6 +93,12 @@ class SimpleAccessLogSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('not_admin_paths'),
       '#description' => t('Skip logging for any admin paths. i.e. those paths that start with "/admin/*".'),
     ];
+    $form['content']['simple_access_log_respect_dnt'] = [
+      '#type' => 'checkbox',
+      '#title' => t('Respect Client`s Do Not Track requests'),
+      '#default_value' => $config->get('respect_dnt'),
+      '#description' => t('Skip logging for clients sending the Do Not Track header. Note: This is enabled by default on many browsers, and the user may not be aware or have explicitly chosen it.'),
+    ];
     $options = [
       '9676800' => '4 Months (16 Weeks)',
       '2419200' => '4 Weeks',

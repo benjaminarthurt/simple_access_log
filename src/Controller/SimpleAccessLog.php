@@ -30,6 +30,11 @@ class SimpleAccessLog extends ControllerBase implements ContainerInjectionInterf
     // Get the request itself, this should supply most of the needed values.
     $request = \Drupal::request();
 
+    // Stop log if DNT Header present and option selected.
+    if($settings->get('respect_dnt') && $request->headers->get('dnt')){
+      return FALSE;
+    }
+
     $access_log = [];
     //request Time
     $access_log['timestamp'] = \Drupal::time()->getRequestTime();
@@ -39,12 +44,12 @@ class SimpleAccessLog extends ControllerBase implements ContainerInjectionInterf
 
     // skip logging user 0 if enabled
     if ($settings->get('do_not_log_0') && $access_log['uid'] == 0) {
-      return false;
+      return FALSE;
     }
 
     // Skip logging user 1 if enabled.
     if ($settings->get('do_not_log_1') && $access_log['uid'] == 1) {
-      return false;
+      return FALSE;
     }
 
     // Skip logging all users with administrator role if enabled.
@@ -52,7 +57,7 @@ class SimpleAccessLog extends ControllerBase implements ContainerInjectionInterf
       $roles = \Drupal::currentUser()->getRoles();
       foreach ($roles as $rid => $role) {
         if ($role == 'administrator') {
-          return false;
+          return FALSE;
         }
       }
     }
@@ -62,7 +67,7 @@ class SimpleAccessLog extends ControllerBase implements ContainerInjectionInterf
 
     //Exclude Admin Paths
     if ($settings->get('not_admin_paths') && substr($access_log['path'], 0, 7) == '/admin/') {
-      return false;
+      return FALSE;
     }
 
     // Get the Client IP.
