@@ -14,9 +14,11 @@
 */
 function simple_access_log__log_request(){
   //Settings
-    $not_user_1 = false;
-    $not_admin = false;
-    $not_admin_paths = true;
+  //@todo load these settings... not just defaults
+  $do_not_log_0 = 0;
+  $do_not_log_1 = 0;
+  $do_not_log_admin = 0;
+  $not_admin_paths = 1;
 
   $access_log = [];
   //request Time
@@ -25,13 +27,18 @@ function simple_access_log__log_request(){
   //User or Anon
   $access_log['uid'] = \Drupal::currentUser()->id();
 
+  // skip logging user 0 if enabled
+  if($do_not_log_0 && $access_log['uid'] == 0 ){
+    return;
+  }
+
   // skip logging user 1 if enabled
-  if($not_user_1 && $access_log['uid'] == 1 ){
+  if($do_not_log_1 && $access_log['uid'] == 1 ){
       return;
   }
 
   //Skip logging all users with administrator role if enabled.
-  if($not_admin){
+  if($do_not_log_admin){
       $roles = \Drupal::currentUser()->getRoles();
       foreach($roles as $rid => $role){
           if($role == 'administrator'){
