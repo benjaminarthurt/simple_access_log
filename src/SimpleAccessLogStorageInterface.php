@@ -9,15 +9,15 @@ namespace Drupal\simple_access_log;
  */
 interface SimpleAccessLogStorageInterface {
 
-    /**
-     * Count a entity view.
-     *
-     * @param array $values
-     *   An array of keyed values to be logged
-     *
-     * @return bool
-     *   TRUE if the access has been logged.
-     */
-    public function logAccess($values);
+  /**
+   * Count a entity view.
+   *
+   * @param array $values
+   *   An array of keyed values to be logged
+   *
+   * @return bool
+   *   TRUE if the access has been logged.
+   */
+  public function logAccess($values);
 
 }

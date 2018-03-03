@@ -1,18 +1,35 @@
-# Simple Access Log
-Drupal 8 Simple Access Log replicates the basic features/functions of the Core Access Log functions that were included as part of the statisitics module, that were not ported to Drupal 8.
+CONTENTS OF THIS FILE
+---------------------
+   
+ * Introduction
+ * Installation
+ * Configuration
+ * Notes
+ * Maintainers
 
-Read more about the features and use of Simple Access Log at its Drupal.org project page at [https://www.drupal.org/project/simple_access_log](https://www.drupal.org/project/simple_access_log)
 
-## Installation and use
+
+INTRODUCTION
+------------
+Drupal 8 Simple Access Log replicates the basic features/functions of the Core Access Log functions that were included
+as part of the statisitics module, that were not ported to Drupal 8.
+
+Read more about the features and use of Simple Access Log at its Drupal.org project page at
+[https://www.drupal.org/project/simple_access_log](https://www.drupal.org/project/simple_access_log)
+
+INSTALLATION
+------------
 
 The Simple Access Log module can be installed like other Drupal modules by placing this directory
 in the Drupal file system (modules directory) and enabling on
 the Drupal Modules page (/admin/modules).
 
 
-## Configuration
+CONFIGURATION
+------------
 
-Simple Access Log can be configured on your Drupal site at Administration - Configuration (/admin/config/system/simple_access_log).
+Simple Access Log can be configured on your Drupal site at Administration - Configuration
+(/admin/config/system/simple_access_log).
 
 ### Options
 * Don`t log UID 0 - Do not log Anonymous page visits
@@ -28,7 +45,10 @@ Simple Access Log can be configured on your Drupal site at Administration - Conf
   * 1 Week
   * 3 Days
   * 1 Day
-  
+
+NOTES
+------------
+
 ## Cron Data Cleanup
 
 On each cron run any data older than the Log retention period setting (4 weeks by default) will be permanently deleted 
@@ -41,4 +61,14 @@ This module runs early in the Drupal execution process, before most other module
  it will have an impact. Using the configuration options to disable logging for certain users may be able to accelerate 
  pages if performance issues arise.
  
- @TODO: Measure the impact with the module on and off. 
+ @TODO: Measure the impact with the module on and off.
+
+ MAINTAINERS
+ -----------
+
+ Current maintainer:
+  * Benjamin Townsend (benjaminarthurt) - https://drupal.org/user/2501220
+
+ This project has been sponsored by:
+  * Townsend Consulting Services
+    https://www.townsendservices.com

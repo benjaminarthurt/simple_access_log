@@ -5,196 +5,216 @@
  * Contains simple_access_log.module.
  */
 
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function simple_access_log_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.simple_access_log':
+      $text = file_get_contents(dirname(__FILE__) . "/README.txt");
+      if (!\Drupal::moduleHandler()->moduleExists('markdown')) {
+        return '<pre>' . $text . '</pre>';
+      } else {
+        // Use the Markdown filter to render the README.
+        $filter_manager = \Drupal::service('plugin.manager.filter');
+        $settings = \Drupal::configFactory()->get('markdown.settings')->getRawData();
+        $config = array('settings' => $settings);
+        $filter = $filter_manager->createInstance('markdown', $config);
+        return $filter->process($text, 'en');
+      }
+  }
+  return NULL;
+}
 
 /**
  * Implements hook_cron().
  */
-function simple_access_log_cron()
-{
-    $cleanup = New Drupal\simple_access_log\Controller\SimpleAccessLog();
-    $cleanup->cleanup();
+function simple_access_log_cron() {
+  $cleanup = New Drupal\simple_access_log\Controller\SimpleAccessLog();
+  $cleanup->cleanup();
 }
 
 /**
  * Implements hook_views_data().
  */
-function simple_access_log_views_data()
-{
-    $data['simple_access_log']['table']['group']  = t('Simple Access Log');
-    $data['simple_access_log']['table']['base'] = array(
-        'field' => 'lid',
-        'title' => t('Simple Access Log'),
-        'weight' => -10,
-    );
+function simple_access_log_views_data() {
+  $data['simple_access_log']['table']['group'] = t('Simple Access Log');
+  $data['simple_access_log']['table']['base'] = array(
+    'field' => 'lid',
+    'title' => t('Simple Access Log'),
+    'weight' => -10,
+  );
 
-    $data['simple_access_log']['table']['provider'] = 'simple_access_log';
-    $data['simple_access_log']['table']['join'] = array(
-        'users' => array(
-            'type' => 'INNER',
-            'left_field' => 'uid',
-            'field' => 'uid',
-        ),
-    );
-    $data['simple_access_log']['timestamp'] = [
-        'title' => t('Timestamp'),
-        'help' => t('The time the request occurred.'),
-        'field' => array(
-            'id' => 'date',
-        ),
-        'sort' => array(
-            'id' => 'date',
-        ),
-        'filter' => array(
-            'id' => 'date',
-        ),
-        'argument' => array(
-            'id' => 'date',
-        ),
-    ];
-    $data['simple_access_log']['lid'] = array(
-        'title' => t('Log ID'),
-        'help' => t('The Unique Log ID'),
-        'field' => [
-            'id' => 'standard',
-        ],
-        'argument' => [
-            'id' => 'standard',
-        ],
-        'filter' => [
-            'id' => 'numeric',
-        ],
-        'sort' => [
-            'id' => 'standard',
-        ],
-    );
-    $data['simple_access_log']['uid'] = array(
-        'title' => t('Uid'),
-        'help' => t('The user ID'),
-        'field' => [
-            'id' => 'standard',
-        ],
-        'argument' => [
-            'id' => 'standard',
-        ],
-        'filter' => [
-            'id' => 'numeric',
-        ],
-        'sort' => [
-            'id' => 'numeric',
-        ],
-    );
-    $data['simple_access_log']['remote_host'] = array(
-        'title' => t('Client IP Address'),
-        'help' => t('The IP Address supplied by the client.'),
-        'field' => array(
-            'id' => 'standard',
-        ),
-        'sort' => array(
-            'id' => 'standard',
-        ),
-        'filter' => array(
-            'id' => 'string',
-        ),
-        'argument' => array(
-            'id' => 'string',
-        ),
-    );
-    $data['simple_access_log']['host'] = array(
-        'title' => t('Server Hostname/IP'),
-        'help' => t('The IP Address or hostname of the server that processed the request.'),
-        'field' => array(
-            'id' => 'standard',
-        ),
-        'sort' => array(
-            'id' => 'standard',
-        ),
-        'filter' => array(
-            'id' => 'string',
-        ),
-        'argument' => array(
-            'id' => 'string',
-        ),
-    );
-    $data['simple_access_log']['title'] = array(
-        'title' => t('Page Title'),
-        'help' => t('The title of the page requested.'),
-        'field' => array(
-            'id' => 'standard',
-        ),
-        'sort' => array(
-            'id' => 'standard',
-        ),
-        'filter' => array(
-            'id' => 'string',
-        ),
-        'argument' => array(
-            'id' => 'string',
-        ),
-    );
-    $data['simple_access_log']['uri'] = array(
-        'title' => t('URI'),
-        'help' => t('The URI requested by the client.'),
-        'field' => array(
-            'id' => 'standard',
-        ),
-        'sort' => array(
-            'id' => 'standard',
-        ),
-        'filter' => array(
-            'id' => 'string',
-        ),
-        'argument' => array(
-            'id' => 'string',
-        ),
-    );
-    $data['simple_access_log']['path'] = array(
-        'title' => t('Path'),
-        'help' => t('The path translated from Drupal`s route.'),
-        'field' => array(
-            'id' => 'standard',
-        ),
-        'sort' => array(
-            'id' => 'standard',
-        ),
-        'filter' => array(
-            'id' => 'string',
-        ),
-        'argument' => array(
-            'id' => 'string',
-        ),
-    );
-    $data['simple_access_log']['referer'] = array(
-        'title' => t('Referer'),
-        'help' => t('The referer supplied by the client.'),
-        'field' => array(
-            'id' => 'standard',
-        ),
-        'sort' => array(
-            'id' => 'standard',
-        ),
-        'filter' => array(
-            'id' => 'string',
-        ),
-        'argument' => array(
-            'id' => 'string',
-        ),
-    );
-    $data['simple_access_log']['user_agent'] = array(
-        'title' => t('User Agent'),
-        'help' => t('The user agent supplied by the client.'),
-        'field' => array(
-            'id' => 'standard',
-        ),
-        'sort' => array(
-            'id' => 'standard',
-        ),
-        'filter' => array(
-            'id' => 'string',
-        ),
-        'argument' => array(
-            'id' => 'string',
-        ),
-    );
+  $data['simple_access_log']['table']['provider'] = 'simple_access_log';
+  $data['simple_access_log']['table']['join'] = array(
+    'users' => array(
+      'type' => 'INNER',
+      'left_field' => 'uid',
+      'field' => 'uid',
+    ),
+  );
+  $data['simple_access_log']['timestamp'] = [
+    'title' => t('Timestamp'),
+    'help' => t('The time the request occurred.'),
+    'field' => array(
+      'id' => 'date',
+    ),
+    'sort' => array(
+      'id' => 'date',
+    ),
+    'filter' => array(
+      'id' => 'date',
+    ),
+    'argument' => array(
+      'id' => 'date',
+    ),
+  ];
+  $data['simple_access_log']['lid'] = array(
+    'title' => t('Log ID'),
+    'help' => t('The Unique Log ID'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'argument' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'numeric',
+    ],
+    'sort' => [
+      'id' => 'standard',
+    ],
+  );
+  $data['simple_access_log']['uid'] = array(
+    'title' => t('Uid'),
+    'help' => t('The user ID'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'argument' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'numeric',
+    ],
+    'sort' => [
+      'id' => 'numeric',
+    ],
+  );
+  $data['simple_access_log']['remote_host'] = array(
+    'title' => t('Client IP Address'),
+    'help' => t('The IP Address supplied by the client.'),
+    'field' => array(
+      'id' => 'standard',
+    ),
+    'sort' => array(
+      'id' => 'standard',
+    ),
+    'filter' => array(
+      'id' => 'string',
+    ),
+    'argument' => array(
+      'id' => 'string',
+    ),
+  );
+  $data['simple_access_log']['host'] = array(
+    'title' => t('Server Hostname/IP'),
+    'help' => t('The IP Address or hostname of the server that processed the request.'),
+    'field' => array(
+      'id' => 'standard',
+    ),
+    'sort' => array(
+      'id' => 'standard',
+    ),
+    'filter' => array(
+      'id' => 'string',
+    ),
+    'argument' => array(
+      'id' => 'string',
+    ),
+  );
+  $data['simple_access_log']['title'] = array(
+    'title' => t('Page Title'),
+    'help' => t('The title of the page requested.'),
+    'field' => array(
+      'id' => 'standard',
+    ),
+    'sort' => array(
+      'id' => 'standard',
+    ),
+    'filter' => array(
+      'id' => 'string',
+    ),
+    'argument' => array(
+      'id' => 'string',
+    ),
+  );
+  $data['simple_access_log']['uri'] = array(
+    'title' => t('URI'),
+    'help' => t('The URI requested by the client.'),
+    'field' => array(
+      'id' => 'standard',
+    ),
+    'sort' => array(
+      'id' => 'standard',
+    ),
+    'filter' => array(
+      'id' => 'string',
+    ),
+    'argument' => array(
+      'id' => 'string',
+    ),
+  );
+  $data['simple_access_log']['path'] = array(
+    'title' => t('Path'),
+    'help' => t('The path translated from Drupal`s route.'),
+    'field' => array(
+      'id' => 'standard',
+    ),
+    'sort' => array(
+      'id' => 'standard',
+    ),
+    'filter' => array(
+      'id' => 'string',
+    ),
+    'argument' => array(
+      'id' => 'string',
+    ),
+  );
+  $data['simple_access_log']['referer'] = array(
+    'title' => t('Referer'),
+    'help' => t('The referer supplied by the client.'),
+    'field' => array(
+      'id' => 'standard',
+    ),
+    'sort' => array(
+      'id' => 'standard',
+    ),
+    'filter' => array(
+      'id' => 'string',
+    ),
+    'argument' => array(
+      'id' => 'string',
+    ),
+  );
+  $data['simple_access_log']['user_agent'] = array(
+    'title' => t('User Agent'),
+    'help' => t('The user agent supplied by the client.'),
+    'field' => array(
+      'id' => 'standard',
+    ),
+    'sort' => array(
+      'id' => 'standard',
+    ),
+    'filter' => array(
+      'id' => 'string',
+    ),
+    'argument' => array(
+      'id' => 'string',
+    ),
+  );
 
-    return $data;
+  return $data;
 }
