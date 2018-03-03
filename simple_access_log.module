@@ -5,20 +5,49 @@
  * Contains simple_access_log.module.
  */
 
-function simple_access_log__log_request(){
-  //do nothing!
-  $message = 'simple access log request';
-  //request Time
-  $access_log = [];
+use Drupal\Core\Database\Connection;
 
-  $access_log['request_time'] = \Drupal::time()->getRequestTime();
+function simple_access_log__log_request(){
+  //Settings
+    $not_user_1 = false;
+    $not_admin = false;
+    $not_admin_paths = true;
+
+  $access_log = [];
+  //request Time
+  $access_log['timestamp'] = \Drupal::time()->getRequestTime();
 
   //User or Anon
   $access_log['uid'] = \Drupal::currentUser()->id();
 
-  //Hostname (can we help with the whole forwarded from thing?
+  // skip logging user 1 if enabled
+  if($not_user_1 && $access_log['uid'] == 1 ){
+      return;
+  }
+
+  //Skip logging all users with administrator role if enabled.
+  if($not_admin){
+      $roles = \Drupal::currentUser()->getRoles();
+      foreach($roles as $rid => $role){
+          if($role == 'administrator'){
+              return;
+          }
+      }
+  }
+
+    //Path
+    $access_log['path'] = $current_path = \Drupal::service('path.current')->getPath();
+
+    //Exclude Admin Paths
+    if($not_admin_paths && substr($access_log['path'],0,7)=='/admin/'){
+        return;
+    }
+
+    //Client IP
+  //@todo There may be a better to get this that takes into account load balancers etc that may be in-front of a host.
   $access_log['remote_host'] = $_SERVER['REMOTE_ADDR'];
 
+  //Get hostname or host IP
   $access_log['host'] = (strlen($_SERVER['SERVER_NAME'])>1?$_SERVER['SERVER_NAME']:$_SERVER['SERVER_ADDR']);
 
   //Page Title
@@ -28,17 +57,195 @@ function simple_access_log__log_request(){
     $access_log['title'] .= \Drupal::service('title_resolver')->getTitle($request, $route);
   }
 
+  //URI
+  $access_log['uri'] = \Drupal::request()->getRequestUri();
 
-  //Path
-  $access_log['path'] = $_SERVER['REQUEST_URI'];
 
-  //Referrer
-  $access_log['referrer'] = $_REQUEST['HTTP_REFERRER'];
+  //Referer
+  $access_log['referer'] = $_SERVER['HTTP_REFERER'];
 
   //User Agent
-  $access_log['user_agent'] = $_REQUEST['HTTP_USER_AGENT'];
+  $access_log['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
 
   // Log to watch dog so we know that this module is being called. Dev testing only.
-  dpm($access_log);
-  \Drupal::logger('my_module')->debug($message.' '.$access_log['path']);
+  $debug = false;
+  if($debug){
+      dpm($access_log);
+  }
+  $db = \Drupal::database();
+  if($db){
+      $db->insert('simple_access_log')->fields($access_log)->execute();
+  } else {
+      \Drupal::logger('simple_access_log')->error('Could not write to database.');
+  }
+}
+
+
+/**
+ * Implements hook_views_data().
+ */
+function simple_access_log_views_data()
+{
+    $data['simple_access_log']['table']['group']  = t('Simple Access Log');
+    $data['simple_access_log']['table']['base'] = array(
+        'field' => 'lid',
+        'title' => t('Simple Access Log'),
+        'weight' => -10,
+    );
+
+    $data['simple_access_log']['table']['provider'] = 'simple_access_log';
+    $data['simple_access_log']['table']['join'] = array(
+        'users' => array(
+            'type' => 'INNER',
+            'left_field' => 'uid',
+            'field' => 'uid',
+        ),
+    );
+    $data['simple_access_log']['timestamp'] = [
+        'title' => t('Timestamp'),
+        'help' => t('The time the request occurred.'),
+        'field' => array(
+            'id' => 'date',
+        ),
+        'sort' => array(
+            'id' => 'date',
+        ),
+        'filter' => array(
+            'id' => 'date',
+        ),
+        'argument' => array(
+            'id' => 'date',
+        ),
+    ];
+
+    $data['simple_access_log']['uid'] = array(
+        'title' => t('Uid'),
+        'help' => t('The user ID'),
+        'field' => [
+            'id' => 'standard',
+        ],
+        'argument' => [
+            'id' => 'standard',
+        ],
+        'filter' => [
+            'id' => 'numeric',
+        ],
+        'sort' => [
+            'id' => 'numeric',
+        ],
+    );
+    $data['simple_access_log']['remote_host'] = array(
+        'title' => t('Client IP Address'),
+        'help' => t('The IP Address supplied by the client.'),
+        'field' => array(
+            'id' => 'standard',
+        ),
+        'sort' => array(
+            'id' => 'standard',
+        ),
+        'filter' => array(
+            'id' => 'string',
+        ),
+        'argument' => array(
+            'id' => 'string',
+        ),
+    );
+    $data['simple_access_log']['host'] = array(
+        'title' => t('Server Hostname/IP'),
+        'help' => t('The IP Address or hostname of the server that processed the request.'),
+        'field' => array(
+            'id' => 'standard',
+        ),
+        'sort' => array(
+            'id' => 'standard',
+        ),
+        'filter' => array(
+            'id' => 'string',
+        ),
+        'argument' => array(
+            'id' => 'string',
+        ),
+    );
+    $data['simple_access_log']['title'] = array(
+        'title' => t('Page Title'),
+        'help' => t('The title of the page requested.'),
+        'field' => array(
+            'id' => 'standard',
+        ),
+        'sort' => array(
+            'id' => 'standard',
+        ),
+        'filter' => array(
+            'id' => 'string',
+        ),
+        'argument' => array(
+            'id' => 'string',
+        ),
+    );
+    $data['simple_access_log']['uri'] = array(
+        'title' => t('URI'),
+        'help' => t('The URI requested by the client.'),
+        'field' => array(
+            'id' => 'standard',
+        ),
+        'sort' => array(
+            'id' => 'standard',
+        ),
+        'filter' => array(
+            'id' => 'string',
+        ),
+        'argument' => array(
+            'id' => 'string',
+        ),
+    );
+    $data['simple_access_log']['path'] = array(
+        'title' => t('Path'),
+        'help' => t('The path translated from Drupal`s route.'),
+        'field' => array(
+            'id' => 'standard',
+        ),
+        'sort' => array(
+            'id' => 'standard',
+        ),
+        'filter' => array(
+            'id' => 'string',
+        ),
+        'argument' => array(
+            'id' => 'string',
+        ),
+    );
+    $data['simple_access_log']['referer'] = array(
+        'title' => t('Referer'),
+        'help' => t('The referer supplied by the client.'),
+        'field' => array(
+            'id' => 'standard',
+        ),
+        'sort' => array(
+            'id' => 'standard',
+        ),
+        'filter' => array(
+            'id' => 'string',
+        ),
+        'argument' => array(
+            'id' => 'string',
+        ),
+    );
+    $data['simple_access_log']['user_agent'] = array(
+        'title' => t('User Agent'),
+        'help' => t('The user agent supplied by the client.'),
+        'field' => array(
+            'id' => 'standard',
+        ),
+        'sort' => array(
+            'id' => 'standard',
+        ),
+        'filter' => array(
+            'id' => 'string',
+        ),
+        'argument' => array(
+            'id' => 'string',
+        ),
+    );
+
+    return $data;
 }
