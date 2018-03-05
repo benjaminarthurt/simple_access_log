@@ -21,11 +21,8 @@ class SimpleAccessLogSubscriber implements EventSubscriberInterface {
    * database storage log function.
    */
   public function executeLogFunction() {
-    $sal = new SimpleAccessLog;
-    $values = $sal->logValues();
-    if (!empty($values)) {
-      $storage = new SimpleAccessLogDatabaseStorage();
-      $storage->logAccess($values);
+    if (!empty($values = SimpleAccessLog::logValues())) {
+      SimpleAccessLogDatabaseStorage::logAccess($values);
     }
   }
 

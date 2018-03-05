@@ -4,6 +4,7 @@ namespace Drupal\simple_access_log\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\simple_access_log\SimpleAccessLogDatabaseStorage;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -23,7 +24,7 @@ class SimpleAccessLog extends ControllerBase implements ContainerInjectionInterf
    * Returns an array of the current values to be logged or false if the current
    * config prevents logging this request.
    */
-  public function logValues() {
+  public static function logValues() {
     // Load module settings.
     $settings = \Drupal::config('simple_access_log.settings');
 
@@ -77,9 +78,8 @@ class SimpleAccessLog extends ControllerBase implements ContainerInjectionInterf
     $access_log['host'] = (strlen($request->server->get('SERVER_NAME')) > 1 ? $request->server->get('SERVER_NAME') : $request->server->get('SERVER_ADDR'));
 
     // Get Page Title from the current route.
-    $access_log['title'] = '';
     if ($route = $request->attributes->get(\Symfony\Cmf\Component\Routing\RouteObjectInterface::ROUTE_OBJECT)) {
-      $access_log['title'] .= \Drupal::service('title_resolver')->getTitle($request, $route);
+      $access_log['title'] = (is_array(\Drupal::service('title_resolver')->getTitle($request, $route))?\Drupal::service('title_resolver')->getTitle($request, $route)['#markup']:\Drupal::service('title_resolver')->getTitle($request, $route));
     }
 
     // Ge the URI requested.
@@ -107,15 +107,8 @@ class SimpleAccessLog extends ControllerBase implements ContainerInjectionInterf
     $settings = \Drupal::config('simple_access_log.settings');
     // Set the oldest timestamp to be the time now minus the difference setting.
     $oldest = time() - $settings->get('delete_log_after');
-    // Get a database connection.
-    $db = \Drupal::database();
-    // Delete values older than the oldest timestamp.
-    $num_deleted = $db->delete('simple_access_log')
-      ->condition('timestamp', $oldest, '<')
-      ->execute();
-    // Return the number of records deleted. I don't think we're
-    // actually doing anything with this value.
-    return $num_deleted;
+    // Purge old data
+    SimpleAccessLogDatabaseStorage::purgeOld($oldest);
   }
 
 }

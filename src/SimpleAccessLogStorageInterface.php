@@ -18,6 +18,15 @@ interface SimpleAccessLogStorageInterface {
    * @return bool
    *   TRUE if the access has been logged.
    */
-  public function logAccess($values);
+  public static function logAccess($values);
+
+  /**
+   * @param int $timestamp
+   *   Epoch timestamp of the oldest record to be purged.
+   *
+   * @return int
+   *   Return number of records that were purged.
+   */
+  public static function purgeOld($timestamp);
 
 }
