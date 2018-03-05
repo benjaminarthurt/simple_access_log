@@ -32,8 +32,7 @@ function simple_access_log_help($route_name, RouteMatchInterface $route_match) {
  * Implements hook_cron().
  */
 function simple_access_log_cron() {
-  $cleanup = new Drupal\simple_access_log\Controller\SimpleAccessLog();
-  $cleanup->cleanup();
+  Drupal\simple_access_log\Controller\SimpleAccessLog::cleanup();
 }
 
 /**

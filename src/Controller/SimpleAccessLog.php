@@ -102,7 +102,7 @@ class SimpleAccessLog extends ControllerBase implements ContainerInjectionInterf
    * Clean up old records from the database.
    * @todo this should probably be partially moved the the DatabaseStorage class.
    */
-  public function cleanup() {
+  public static function cleanup() {
     // Get the module's settings.
     $settings = \Drupal::config('simple_access_log.settings');
     // Set the oldest timestamp to be the time now minus the difference setting.
